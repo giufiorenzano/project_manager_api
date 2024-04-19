@@ -1,5 +1,6 @@
-import { Project } from 'src/modules/project/entities/project.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+
+import { Project } from 'src/modules/project/entities/project.entity';
 
 @Entity()
 export class Task {
@@ -16,7 +17,6 @@ export class Task {
     cascade: true,
     nullable: false,
   })
-  
   project: Project;
 }
 
