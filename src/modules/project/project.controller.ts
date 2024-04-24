@@ -1,7 +1,22 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { ProjectService } from './project.service';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseInterceptors,
+} from '@nestjs/common';
+
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+
+import { ProjectService } from './project.service';
+
+import { FilterDto } from '../pagination/dto/filter.dto';
 
 @Controller('project')
 export class ProjectController {
@@ -13,8 +28,10 @@ export class ProjectController {
   }
 
   @Get()
-  findAll() {
-    return this.projectService.findAll();
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(30000)
+  findAll(@Query() filter?: FilterDto) {
+    return this.projectService.findAllPaginated(filter);
   }
 
   @Get(':id')

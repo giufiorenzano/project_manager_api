@@ -1,5 +1,6 @@
-import { Task } from 'src/modules/task/entities/task.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+
+import { Task } from 'src/modules/task/entities/task.entity';
 
 @Entity()
 export class Project {

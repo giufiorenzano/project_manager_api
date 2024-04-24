@@ -8,11 +8,15 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 
 import { Project } from './entities/project.entity';
 
+import { DEFAULT_PAGE_SIZE, FilterDto } from '../pagination/dto/filter.dto';
+import { PaginationService } from '../pagination/pagination.service';
+
 @Injectable()
 export class ProjectService {
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
+    private readonly paginationService: PaginationService,
   ) {}
 
   create(createProjectDto: CreateProjectDto) {
@@ -23,8 +27,22 @@ export class ProjectService {
     return this.projectRepository.find();
   }
 
+  findAllPaginated(filter?: FilterDto) {
+    if (!filter) {
+      return this.findAll();
+    }
+
+    return this.paginationService.paginate<Project>(
+      this.projectRepository,
+      filter,
+    );
+  }
+
   findOne(id: number) {
-    return this.projectRepository.findOne({ where: { id }, relations: ['tasks'] });
+    return this.projectRepository.findOne({
+      where: { id },
+      relations: ['tasks'],
+    });
 
     /* another way:
     return this.projectRepository.findBy({ id }); */
