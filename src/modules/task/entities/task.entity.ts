@@ -1,6 +1,7 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { Project } from 'src/modules/project/entities/project.entity';
+import { User } from 'src/modules/users/entities/user.entity';
 
 @Entity()
 export class Task {
@@ -18,6 +19,10 @@ export class Task {
     nullable: false,
   })
   project: Project;
+
+  @ManyToOne(() => User, (user) => user.tasks)
+  @JoinColumn()
+  user: User;
 }
 
 export enum TaskStatus {
