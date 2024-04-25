@@ -40,6 +40,7 @@ $ yarn run start
 
 # watch mode
 $ yarn run start:dev
+$ redis-server
 
 # production mode
 $ yarn run start:prod
