@@ -16,7 +16,6 @@ export class PaginationService {
 
     const take = filter.pageSize;
 
-
     const [ results, total ] = await repository.findAndCount({
       skip,
       take,

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { Repository } from 'typeorm';
@@ -10,6 +10,7 @@ import { Project } from './entities/project.entity';
 
 import { DEFAULT_PAGE_SIZE, FilterDto } from '../pagination/dto/filter.dto';
 import { PaginationService } from '../pagination/pagination.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class ProjectService {
@@ -17,45 +18,76 @@ export class ProjectService {
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
     private readonly paginationService: PaginationService,
+    private readonly userService: UsersService,
   ) {}
 
-  create(createProjectDto: CreateProjectDto) {
-    return this.projectRepository.save(createProjectDto);
+  async create(userEmail: string, createProjectDto: CreateProjectDto) {
+    const user = await this.userService.findOneOrFail({
+      email: userEmail,
+    });
+
+    return this.projectRepository.save({
+      ...createProjectDto,
+      user,
+    });
   }
 
-  findAll() {
-    return this.projectRepository.find();
+  async findAll(userEmail: string) {
+    const user = await this.userService.findOneBy({
+      email: userEmail,
+    });
+
+    return this.projectRepository.find({ where: { user } });
   }
 
-  findAllPaginated(filter?: FilterDto) {
+  async findAllPaginated(userEmail: string, filter?: FilterDto) {
     if (!filter) {
-      return this.findAll();
+      return this.findAll(userEmail);
     }
+
+    const user = await this.userService.findOneBy({
+      email: userEmail,
+    });
 
     return this.paginationService.paginate<Project>(
       this.projectRepository,
-      filter,
+      {
+        page: filter.page,
+        pageSize: DEFAULT_PAGE_SIZE,
+      },
+      { user },
     );
   }
 
-  findOne(id: number) {
-    return this.projectRepository.findOne({
-      where: { id },
-      relations: ['tasks'],
+  async findOne(userEmail: string, id: number) {
+    const user = await this.userService.findOneBy({
+      email: userEmail,
     });
 
-    /* another way:
-    return this.projectRepository.findBy({ id }); */
+    return this.projectRepository.findOne({
+      where: { id, user },
+      relations: { tasks: true },
+    });
   }
 
-  update(id: number, updateProjectDto: UpdateProjectDto) {
+  async update(
+    userEmail: string,
+    id: number,
+    updateProjectDto: UpdateProjectDto,
+  ) {
+    const user = await this.userService.findOneBy({
+      email: userEmail,
+    });
+    const project = this.findOne(user.email, id);
+
+    if (!project) {
+      throw new NotFoundException();
+    }
+
     return this.projectRepository.update(id, updateProjectDto);
   }
 
-  remove(id: number) {
-    return this.projectRepository.delete(id);
-
-    /* soft delete:
-    return this.projectRepository.softDelete(id); */
+  async remove(id: number) {
+    return this.projectRepository.softDelete(id);
   }
 }

@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Req,
 } from '@nestjs/common';
 
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -18,23 +19,27 @@ export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @Post()
-  create(@Body() createTaskDto: CreateTaskDto) {
-    return this.taskService.create(createTaskDto);
+  create(@Req() request, @Body() createTaskDto: CreateTaskDto) {
+    return this.taskService.create(request.user.userEmail, createTaskDto);
   }
 
   @Get()
-  findAll() {
-    return this.taskService.findAll();
+  findAll(@Req() request) {
+    return this.taskService.findAll(request.user?.username);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.taskService.findOne(+id);
+  findOne(@Req() request, @Param('id') id: string) {
+    return this.taskService.findOne(request.user?.username, +id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
-    return this.taskService.update(+id, updateTaskDto);
+  update(
+    @Req() request,
+    @Param('id') id: string,
+    @Body() updateTaskDto: UpdateTaskDto,
+  ) {
+    return this.taskService.update(request.user?.username, +id, updateTaskDto);
   }
 
   @Delete(':id')
